@@ -37,6 +37,12 @@ export const SHIELD_T = 8;
 export const STAR_T = 3;
 /** Ventana de memoria de las teclas de salto y deslizar (s). */
 export const BUFFER_TECLA = 0.12;
+/**
+ * Máximo de una carrera: 5 minutos (18 000 pasos). Al completar ese paso, los que siguen corriendo terminan juntos y
+ * empatan, con la regla de empates de siempre (docs/DISENO.md, secciones 2 y 4). Sin máximo, dos jugadores que no
+ * fallan nunca no terminarían. Cambio para el MVP: el prototipo no lo tiene.
+ */
+export const MAX_TICKS_CARRERA = 5 * 60 * 60;
 
 /** Hitbox del stickman: solo el cuerpo. Los cosméticos no tienen hitbox. */
 export const HITBOX = { ancho: 0.52, alto: 1.75, altoDeslizando: 0.8, profundidad: 0.44 } as const;

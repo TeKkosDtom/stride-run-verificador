@@ -1,4 +1,4 @@
-import { DT, SALIDAS, baseEnTick } from './constantes.js';
+import { DT, MAX_TICKS_CARRERA, SALIDAS, baseEnTick } from './constantes.js';
 import { ENTRADA_VACIA, corredorNuevo, eliminar, pasoCorredor, type Entrada, type EstadoCorredor, type EventoSim } from './corredor.js';
 import { Pista } from './pista.js';
 
@@ -8,7 +8,7 @@ export const PISTA_ADELANTE = 170;
 /**
  * Last Man Standing: el que queda último en pista gana. Cuando queda uno solo (con 2 o más corredores),
  * el resultado ya no puede cambiar y la carrera termina en ese tick (deathType 'fin').
- * Devuelve true si cerró la carrera.
+ * Devuelve true si cerró la carrera. La otra forma de terminar es el máximo de tiempo (cerrarPorTiempo).
  */
 export function cerrarSiEstaDecidida(corredores: EstadoCorredor[], tick: number): boolean {
   if (corredores.length < 2) return false;
@@ -16,6 +16,24 @@ export function cerrarSiEstaDecidida(corredores: EstadoCorredor[], tick: number)
   if (vivos.length !== 1) return false;
   eliminar(vivos[0], 'fin', tick);
   return true;
+}
+
+/**
+ * Máximo de tiempo (MAX_TICKS_CARRERA): todos los que siguen en pie terminan en `tick` (deathType 'fin'), así empatan
+ * entre ellos con la regla de empates de siempre.
+ */
+export function cerrarPorTiempo(corredores: EstadoCorredor[], tick: number): void {
+  for (const r of corredores) if (!r.dead) eliminar(r, 'fin', tick);
+}
+
+/**
+ * La carrera terminó por el máximo de tiempo: los que seguían corriendo terminaron juntos (marca = MAX_TICKS_CARRERA + 1).
+ * Con 2 o más corredores hacen falta al menos 2 así (es un empate); si quedó uno solo en ese mismo paso, ganó como
+ * siempre. Jugando solo, alcanza con él. `marcas`: Carrera.marca de cada corredor (o la marca del resultado oficial).
+ */
+export function terminoPorTiempo(marcas: readonly number[]): boolean {
+  const alMaximo = marcas.filter((m) => m === MAX_TICKS_CARRERA + 1).length;
+  return marcas.length === 1 ? alMaximo === 1 : alMaximo >= 2;
 }
 
 export interface OpcionesCarrera {
@@ -83,6 +101,10 @@ export class Carrera {
     // El último en pie sobrevivió a este tick: se le cuenta el siguiente, así gana solo
     // (si se le contara este mismo tick, empataría con el que acaba de chocar).
     if (this.finAnticipado) cerrarSiEstaDecidida(this.corredores, this.tick + 1);
+    // Máximo de tiempo, en todos los modos: al completar el paso número MAX_TICKS_CARRERA, los que siguen en pie
+    // terminan juntos. Por la misma razón, se les cuenta el tick siguiente (= MAX_TICKS_CARRERA): empatan entre ellos y
+    // quedan por delante de cualquiera que cayó antes, también del que chocó en este mismo paso.
+    if (this.tick + 1 >= MAX_TICKS_CARRERA) cerrarPorTiempo(this.corredores, this.tick + 1);
     this.tick++;
     let lead = 0;
     let minD = Infinity;

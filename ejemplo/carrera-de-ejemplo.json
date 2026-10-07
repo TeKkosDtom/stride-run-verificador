@@ -13,7 +13,7 @@
    "Escribe estos comandos de a uno en una terminal (en Windows, PowerShell o cmd):",
    "git clone https://github.com/TeKkosDtom/stride-run-verificador",
    "cd stride-run-verificador",
-   "git checkout codigo-a04e60a34520",
+   "git checkout codigo-a50270374aad",
    "npm ci",
    "npm run verificar -- \"<ruta completa de este archivo>\" <huella que anotaste al terminar la carrera>",
    "Para la ruta del archivo, también puedes arrastrarlo a la terminal."
@@ -73,7 +73,7 @@
  ],
  "datos": {
   "v": 1,
-  "codigo": "a04e60a345201659551c86be428fdca346f14c4f1135fc5027132a9fbc146527",
+  "codigo": "a50270374aad22e10fa72afe7ef1c495a5020b62fea86b835c82bfef5f821d37",
   "semilla": 20261007,
   "n": 4,
   "ticks": 465,
@@ -133,7 +133,7 @@
   ],
   "bajas": []
  },
- "huella": "4b11de226c96ff1bb9af1a029ef6b916c14ef91988f353d5c7b4eff1c8a14305",
+ "huella": "d55768426c022af88fbe629aa10fd90c9c526431d302ceda84f9fa4738c8093b",
  "verificacion": {
   "huellaCoincideEnElServidor": true,
   "mismoResultadoAlVolverASimular": true

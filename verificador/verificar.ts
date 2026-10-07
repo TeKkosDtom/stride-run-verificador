@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { MAX_TICKS_CARRERA } from '../src/constantes.js';
 import { huellaRepeticion } from '../src/huella.js';
 import { MICRO, TABLA_PREMIOS, repartir } from '../src/premios.js';
 import { ReproductorRepeticion, problemaRepeticion, type DatosRepeticion } from '../src/repeticion.js';
@@ -141,7 +142,7 @@ export function verificarArchivo(contenido: unknown, codigoLocal: string = huell
   lineas.push('Volviendo a simular la carrera con las teclas guardadas:');
   if (!carrera.terminada) {
     const enPie = carrera.corredores.filter((r) => !r.dead).length;
-    mal(`La carrera se cortó con ${enPie} corredores en pie. Según las reglas sigue hasta que queda uno solo.`);
+    mal(`La carrera se cortó con ${enPie} corredores en pie. Según las reglas sigue hasta que queda uno solo, o hasta el máximo de ${MAX_TICKS_CARRERA / 3600} minutos.`);
   }
   if (a.partida.plazas !== undefined && a.partida.plazas !== d.n) mal(`La partida dice ${a.partida.plazas} jugadores, pero las teclas son de ${d.n}.`);
   if (a.corredores.some((c) => c.apuesta !== apuesta)) mal(`La apuesta del resultado oficial no es la de la mesa de ${a.partida.mesa} (${dinero(apuesta)} cada uno).`);

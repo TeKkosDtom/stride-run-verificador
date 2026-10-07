@@ -9,7 +9,10 @@ import type { Pista, TipoPowerUp } from './pista.js';
  * enviarlo por la red y volver a simular desde él (predicción del cliente).
  */
 
-/** 'hit' chocó, 'fall' cayó, 'fin' terminó la carrera sin chocar (quedó solo y ya iba primero). */
+/**
+ * 'hit' chocó, 'fall' cayó, 'fin' terminó la carrera sin chocar: quedó solo (y ya iba primero) o llegó al máximo de
+ * tiempo (MAX_TICKS_CARRERA; ahí pueden ser varios, y empatan).
+ */
 export type TipoMuerte = 'hit' | 'fall' | 'fin';
 
 export interface EstadoCorredor {
@@ -130,9 +133,12 @@ export function pasoCorredor(r: EstadoCorredor, ent: Entrada, base: number, pist
     const dx = ent.steerTo - r.x;
     r.x += Math.sign(dx) * Math.min(Math.abs(dx), LAT * DT);
   }
-  // Turbo y freno comparten la barra de energía.
-  const useSprint = sprint && r.stam > 0;
-  const useBrake = !useSprint && brake && r.stam > 0;
+  // Turbo y freno comparten la barra de energía, y solo funcionan si alcanza para pagar el paso entero
+  // (con la barra casi vacía, cobrar solo lo que queda daba freno o turbo gratis un paso de cada dos).
+  // El 1e-9 es por el error de los decimales: con la barra llena siguen durando exactamente 150 pasos.
+  const alcanza = r.stam >= ENERGIA_GASTO * DT - 1e-9;
+  const useSprint = sprint && alcanza;
+  const useBrake = !useSprint && brake && alcanza;
   const mult = useSprint ? SPRINT : useBrake ? BRAKE : 1;
   if (ev) {
     if (useSprint && !r.usingSprint) ev.push('turbo');
