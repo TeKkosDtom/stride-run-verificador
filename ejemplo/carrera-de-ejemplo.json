@@ -5,8 +5,8 @@
   "entradas": "Por corredor, pares [tick, teclas]: desde ese tick se aplican esas teclas hasta el próximo par. Teclas en bits: 1 izquierda, 2 derecha, 4 turbo, 8 freno, 16 saltar, 32 deslizar.",
   "bajas": "Pares [tick, corredor]: eliminado por desconexión justo antes de simular ese tick.",
   "huella": "SHA-256 encadenado. h = sha256(\"stride-run/repeticion/v1|<partida.id>|<partida.mesa>|<semilla>|<n>|<codigo>\") (texto UTF-8). Para cada tick t de 0 a ticks: h = sha256(h + t en 4 bytes big-endian + bytes), donde h son los 32 bytes del hash anterior (no su texto hexadecimal) y bytes son las bajas de ese tick (0x80 + corredor, en orden) seguidas de un byte por corredor con las teclas vigentes en ese tick, aunque no hayan cambiado y aunque ya esté eliminado (solo si t < ticks). La huella es h en hexadecimal. El juego muestra las primeras 20 letras al terminar la carrera.",
-  "partida": "id: identificador de la partida. mesa: apuesta de cada jugador, en unidades enteras de la moneda de la mesa (1 = 1 USDT de prueba). plazas: cantidad de jugadores. pozo y comision: en millonésimas.",
-  "corredores": "Resultado oficial que guardó y pagó el servidor, en orden de asiento (el mismo orden que las teclas). distanciaDm: distancia en decímetros. Montos en millonésimas: 1000000 = 1. Los nombres los informa el servidor y no forman parte de la huella.",
+  "partida": "id: identificador de la partida. mesa: apuesta de cada jugador, en unidades enteras de la moneda de la mesa (1 = 1 USDT de prueba). plazas: cantidad de jugadores. pozo y comision: en millonésimas. estado: pagada, en_revision (pozo congelado, nadie cobró) o devuelta (se devolvieron las apuestas; premio es lo que habría cobrado). resolucion: cómo resolvió el administrador un pozo congelado: como_termino (se pagó como terminó), devueltas (se devolvieron las apuestas) o sin_marcados (los jugadores marcados por la revisión anti-trampas perdieron su apuesta y el pozo se repartió entre los demás, como si ellos hubieran quedado últimos). null si se pagó al terminar la carrera o si todavía está en revisión.",
+  "corredores": "Resultado oficial que calculó el servidor, en orden de asiento (el mismo orden que las teclas). distanciaDm: distancia en decímetros. Montos en millonésimas: 1000000 = 1. Los nombres los informa el servidor y no forman parte de la huella. pagado: lo que cobró de verdad cada uno. Es igual a premio, salvo con devuelta (es la apuesta) y con sin_marcados (es el reparto sin los marcados). null mientras está en revisión y en las partidas viejas. premio es siempre el resultado de la carrera: es lo que comprueba el verificador.",
   "verificacion": "Lo que comprobó el juego al descargar el archivo. Para una revisión independiente, usa el verificador público.",
   "comoVerificar": [
    "El código de la simulación y un verificador están publicados en https://github.com/TeKkosDtom/stride-run-verificador. Hacen falta Node.js (20 o más nuevo) y git.",
@@ -22,6 +22,8 @@
  "partida": {
   "id": "ejemplo",
   "fecha": "2026-10-07T00:00:00.000Z",
+  "estado": "pagada",
+  "resolucion": null,
   "mesa": 1,
   "plazas": 4,
   "pozo": 4000000,
@@ -35,6 +37,7 @@
    "distanciaDm": 838,
    "apuesta": 1000000,
    "premio": 1200000,
+   "pagado": 1200000,
    "desconectado": false
   },
   {
@@ -44,6 +47,7 @@
    "distanciaDm": 807,
    "apuesta": 1000000,
    "premio": 2000000,
+   "pagado": 2000000,
    "desconectado": false
   },
   {
@@ -53,6 +57,7 @@
    "distanciaDm": 599,
    "apuesta": 1000000,
    "premio": 400000,
+   "pagado": 400000,
    "desconectado": false
   },
   {
@@ -62,6 +67,7 @@
    "distanciaDm": 598,
    "apuesta": 1000000,
    "premio": 0,
+   "pagado": 0,
    "desconectado": false
   }
  ],

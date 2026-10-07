@@ -33,7 +33,7 @@ El verificador muestra cada comprobación con ✓ o ✗ y termina con un resumen
 
 1. **La versión del código.** Cada carrera anota con qué versión del código de la simulación se jugó. El verificador comprueba que el código de esta carpeta sea exactamente ese. Si no, te dice qué versión descargar y no revisa nada más.
 2. **La huella.** Es una cadena de hashes SHA-256 de todas las teclas de la carrera, que el servidor arma mientras se juega y muestra al terminar. El verificador la vuelve a calcular con las teclas del archivo y la compara con la del archivo y con la que anotaste. Si alguien hubiera cambiado una sola tecla después de la carrera, la huella sería otra. El juego muestra las primeras 20 letras (80 bits): fabricar otras teclas que den esas mismas 20 letras costaría muchísimo más de lo que vale cualquier carrera.
-3. **El resultado y los premios.** Vuelve a simular la carrera tick a tick (60 por segundo) con las teclas guardadas y comprueba que terminó como dicen las reglas (cuando queda un solo corredor en pista, o cuando quedan todos afuera). Ordena a los jugadores: el que queda eliminado primero pierde primero, y los que caen en el mismo tick empatan. Después reparte el pozo con las reglas de `src/premios.ts` y con la apuesta de esa mesa, y lo compara con el resultado oficial que pagó el servidor: puesto, distancia y premio de cada jugador, pozo y comisión de la plataforma. También comprueba que quien quedó afuera por desconectarse figure así en el resultado oficial.
+3. **El resultado y los premios.** Vuelve a simular la carrera tick a tick (60 por segundo) con las teclas guardadas y comprueba que terminó como dicen las reglas (cuando queda un solo corredor en pista, o cuando quedan todos afuera). Ordena a los jugadores: el que queda eliminado primero pierde primero, y los que caen en el mismo tick empatan. Después reparte el pozo con las reglas de `src/premios.ts` y con la apuesta de esa mesa, y lo compara con el resultado oficial de la carrera que calculó y guardó el servidor: puesto, distancia y premio de cada jugador, pozo y comisión de la plataforma. También comprueba que quien quedó afuera por desconectarse figure así en el resultado oficial. Normalmente es lo que se pagó; si la revisión anti-trampas congeló el pozo, lo que cobró de verdad cada uno puede ser distinto (mira abajo).
 
 ## Qué no comprueba
 
@@ -41,6 +41,7 @@ El verificador muestra cada comprobación con ✓ o ✗ y termina con un resumen
 - **Quién es quién.** Los nombres de los jugadores y quién se sentó en cada asiento los informa el servidor: no son parte de la huella.
 - **Cómo se eligió la pista.** El servidor la elige al azar al empezar cada carrera.
 - **Tu saldo.** Los movimientos de tu saldo están en el Historial del juego.
+- **Lo que se cobró de verdad.** Si la revisión anti-trampas congeló el pozo, un administrador puede pagar como terminó, devolver las apuestas o pagar sin el jugador marcado. Lo que cobró cada uno está en `pagado`, y cómo se resolvió en `partida.estado` y `partida.resolucion` (`en_revision` quiere decir que nadie cobró todavía). El verificador solo compara `premio`, que es siempre el resultado de la carrera.
 
 ## Versiones
 
