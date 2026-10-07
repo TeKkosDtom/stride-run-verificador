@@ -1,0 +1,135 @@
+{
+ "formato": "stride-run/repeticion v1",
+ "explicacion": {
+  "datos": "v: versión de este formato. codigo: versión (SHA-256) del código de la simulación con el que se jugó. semilla: genera la pista (mulberry32). n: corredores, en orden de asiento. ticks: pasos de 1/60 s simulados.",
+  "entradas": "Por corredor, pares [tick, teclas]: desde ese tick se aplican esas teclas hasta el próximo par. Teclas en bits: 1 izquierda, 2 derecha, 4 turbo, 8 freno, 16 saltar, 32 deslizar.",
+  "bajas": "Pares [tick, corredor]: eliminado por desconexión justo antes de simular ese tick.",
+  "huella": "SHA-256 encadenado. h = sha256(\"stride-run/repeticion/v1|<partida.id>|<partida.mesa>|<semilla>|<n>|<codigo>\") (texto UTF-8). Para cada tick t de 0 a ticks: h = sha256(h + t en 4 bytes big-endian + bytes), donde h son los 32 bytes del hash anterior (no su texto hexadecimal) y bytes son las bajas de ese tick (0x80 + corredor, en orden) seguidas de un byte por corredor con las teclas vigentes en ese tick, aunque no hayan cambiado y aunque ya esté eliminado (solo si t < ticks). La huella es h en hexadecimal. El juego muestra las primeras 20 letras al terminar la carrera.",
+  "partida": "id: identificador de la partida. mesa: apuesta de cada jugador, en unidades enteras de la moneda de la mesa (1 = 1 USDT de prueba). plazas: cantidad de jugadores. pozo y comision: en millonésimas.",
+  "corredores": "Resultado oficial que guardó y pagó el servidor, en orden de asiento (el mismo orden que las teclas). distanciaDm: distancia en decímetros. Montos en millonésimas: 1000000 = 1. Los nombres los informa el servidor y no forman parte de la huella.",
+  "verificacion": "Lo que comprobó el juego al descargar el archivo. Para una revisión independiente, usa el verificador público.",
+  "comoVerificar": [
+   "El código de la simulación y un verificador están publicados en https://github.com/TeKkosDtom/stride-run-verificador. Hacen falta Node.js (20 o más nuevo) y git.",
+   "Escribe estos comandos de a uno en una terminal (en Windows, PowerShell o cmd):",
+   "git clone https://github.com/TeKkosDtom/stride-run-verificador",
+   "cd stride-run-verificador",
+   "git checkout codigo-a04e60a34520",
+   "npm ci",
+   "npm run verificar -- \"<ruta completa de este archivo>\" <huella que anotaste al terminar la carrera>",
+   "Para la ruta del archivo, también puedes arrastrarlo a la terminal."
+  ]
+ },
+ "partida": {
+  "id": "ejemplo",
+  "fecha": "2026-10-07T00:00:00.000Z",
+  "mesa": 1,
+  "plazas": 4,
+  "pozo": 4000000,
+  "comision": 400000
+ },
+ "corredores": [
+  {
+   "nombre": "Ana",
+   "posicion": 2,
+   "empatado": false,
+   "distanciaDm": 838,
+   "apuesta": 1000000,
+   "premio": 1200000,
+   "desconectado": false
+  },
+  {
+   "nombre": "Beto",
+   "posicion": 1,
+   "empatado": false,
+   "distanciaDm": 807,
+   "apuesta": 1000000,
+   "premio": 2000000,
+   "desconectado": false
+  },
+  {
+   "nombre": "Caro",
+   "posicion": 3,
+   "empatado": false,
+   "distanciaDm": 599,
+   "apuesta": 1000000,
+   "premio": 400000,
+   "desconectado": false
+  },
+  {
+   "nombre": "Dani",
+   "posicion": 4,
+   "empatado": false,
+   "distanciaDm": 598,
+   "apuesta": 1000000,
+   "premio": 0,
+   "desconectado": false
+  }
+ ],
+ "datos": {
+  "v": 1,
+  "codigo": "a04e60a345201659551c86be428fdca346f14c4f1135fc5027132a9fbc146527",
+  "semilla": 20261007,
+  "n": 4,
+  "ticks": 465,
+  "entradas": [
+   [
+    0,
+    0,
+    78,
+    4,
+    140,
+    0,
+    172,
+    4,
+    249,
+    0,
+    399,
+    4
+   ],
+   [
+    0,
+    0,
+    37,
+    4,
+    109,
+    0,
+    168,
+    4,
+    228,
+    0
+   ],
+   [
+    0,
+    8,
+    67,
+    0,
+    151,
+    4,
+    198,
+    0,
+    376,
+    4,
+    383,
+    0
+   ],
+   [
+    0,
+    0,
+    67,
+    8,
+    127,
+    0,
+    169,
+    4,
+    251,
+    0
+   ]
+  ],
+  "bajas": []
+ },
+ "huella": "4b11de226c96ff1bb9af1a029ef6b916c14ef91988f353d5c7b4eff1c8a14305",
+ "verificacion": {
+  "huellaCoincideEnElServidor": true,
+  "mismoResultadoAlVolverASimular": true
+ }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "stride-run-verificador",
+  "version": "1.0.0",
+  "private": true,
+  "description": "El código que decide cada carrera de Stride Run y un verificador para comprobarlas por tu cuenta",
+  "type": "module",
+  "license": "SEE LICENSE IN LICENCIA.md",
+  "scripts": {
+    "verificar": "tsx verificador/verificar.ts",
+    "version-codigo": "tsx verificador/codigo.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}
