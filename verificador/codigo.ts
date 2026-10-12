@@ -5,16 +5,16 @@ import { fileURLToPath } from 'node:url';
 /**
  * Versión del código de la simulación.
  *
- * Son los archivos que deciden una carrera y su reparto, a partir de la semilla y las teclas:
- * pista, física, reloj, teclas, repetición, huella y premios. Si cambia una sola letra de alguno, cambia la versión.
+ * Son los archivos que deciden una carrera y su reparto, a partir del sorteo de la pista y las teclas:
+ * sorteo, pista, física, reloj, teclas, repetición, huella y premios. Si cambia una sola letra de alguno, cambia la versión.
  *
  * Receta: SHA-256 de, para cada archivo en este orden, la línea "// <nombre>" seguida del contenido del archivo
  * (con saltos de línea \n). En una terminal, dentro de la carpeta src:
  *
- *   for f in constantes.ts rng.ts pista.ts corredor.ts carrera.ts entradas.ts repeticion.ts huella.ts premios.ts; do printf '// %s\n' "$f"; cat "$f"; done | sha256sum
+ *   for f in constantes.ts rng.ts sorteo.ts pista.ts corredor.ts carrera.ts entradas.ts repeticion.ts huella.ts premios.ts; do printf '// %s\n' "$f"; cat "$f"; done | sha256sum
  */
 export const ARCHIVOS_SIMULACION = [
-  'constantes.ts', 'rng.ts', 'pista.ts', 'corredor.ts', 'carrera.ts', 'entradas.ts', 'repeticion.ts', 'huella.ts', 'premios.ts',
+  'constantes.ts', 'rng.ts', 'sorteo.ts', 'pista.ts', 'corredor.ts', 'carrera.ts', 'entradas.ts', 'repeticion.ts', 'huella.ts', 'premios.ts',
 ] as const;
 
 const SRC = new URL('../src/', import.meta.url);

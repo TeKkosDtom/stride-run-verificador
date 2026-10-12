@@ -2,11 +2,13 @@ import { Carrera } from './carrera.js';
 import type { EventoSim } from './corredor.js';
 import { CODIGO_SIMULACION } from './codigo.js';
 import { MAX_BITS, desempacarEntrada } from './entradas.js';
+import { problemaSorteo, type SorteoPista } from './sorteo.js';
 
 /**
  * Repeticiones: la carrera se puede volver a ver (o a revisar en una disputa) porque la simulación es determinista.
  * Alcanza con guardar la semilla, las teclas que el servidor aplicó en cada tick a cada corredor
  * y en qué momento quedó eliminado alguien por desconectarse. Volver a simular eso da exactamente la misma carrera.
+ * En las mesas, además, el sorteo del que salió la semilla de la pista (sorteo.ts): la huella lo ata.
  */
 
 export const VERSION_REPETICION = 1;
@@ -22,6 +24,11 @@ export interface DatosRepeticion {
    */
   codigo: string;
   semilla: number;
+  /**
+   * De dónde salió la semilla de la pista (paso 2e): el sorteo de la mesa, con un sobre y un número por asiento.
+   * Lo traen todas las carreras de mesa desde el paso 2e; la práctica y las carreras de antes, no.
+   */
+  sorteo?: SorteoPista;
   /** Cantidad de corredores (en orden de asiento). */
   n: number;
   /** Ticks simulados en total. */
@@ -42,6 +49,8 @@ export interface DatosRepeticion {
  */
 export type AlEslabon = (t: number, bytes: number[]) => void;
 
+const copiaSorteo = (s: SorteoPista): SorteoPista => ({ plataforma: s.plataforma, compromisos: s.compromisos.slice(), aportes: s.aportes.slice() });
+
 /** Anota la carrera mientras el servidor la simula. */
 export class GrabadorRepeticion {
   private readonly entradas: number[][];
@@ -49,14 +58,21 @@ export class GrabadorRepeticion {
   private readonly bajas: [number, number][] = [];
   /** Bajas desde el último eslabón (todas son del tick que viene). */
   private bajasTick: number[] = [];
+  /** El sorteo de la mesa, copiado al crear el grabador. */
+  private readonly sorteo?: SorteoPista;
 
   /** Versión del código de la simulación que se está usando (la que queda anotada). */
   readonly codigo = CODIGO_SIMULACION;
 
-  /** `alEslabon`: para ir armando la huella tick a tick, sin calcularla toda de golpe al final. */
-  constructor(private readonly semilla: number, private readonly n: number, private readonly alEslabon?: AlEslabon) {
+  /**
+   * `alEslabon`: para ir armando la huella tick a tick, sin calcularla toda de golpe al final.
+   * `sorteo`: el de la mesa, del que salió `semilla`; la práctica no tiene. Se copia acá: queda anotado como estaba al
+   * largar (como lo ató la huella), aunque después alguien cambie el original.
+   */
+  constructor(private readonly semilla: number, private readonly n: number, private readonly alEslabon?: AlEslabon, sorteo?: SorteoPista) {
     this.entradas = Array.from({ length: n }, () => []);
     this.ultimos = Array.from({ length: n }, () => -1);
+    this.sorteo = sorteo && copiaSorteo(sorteo);
   }
 
   /** Las teclas que se aplican en `tick` (una por corredor, en orden de asiento). Se llama justo antes de simularlo. */
@@ -83,7 +99,12 @@ export class GrabadorRepeticion {
   cerrar(ticks: number): DatosRepeticion {
     this.alEslabon?.(ticks, this.bajasTick);
     this.bajasTick = [];
-    return { v: VERSION_REPETICION, codigo: this.codigo, semilla: this.semilla, n: this.n, ticks, entradas: this.entradas.map((e) => e.slice()), bajas: this.bajas.map((b) => [b[0], b[1]]) };
+    const s = this.sorteo;
+    return {
+      v: VERSION_REPETICION, codigo: this.codigo, semilla: this.semilla,
+      ...(s ? { sorteo: copiaSorteo(s) } : {}),
+      n: this.n, ticks, entradas: this.entradas.map((e) => e.slice()), bajas: this.bajas.map((b) => [b[0], b[1]]),
+    };
   }
 }
 
@@ -117,6 +138,8 @@ export function problemaRepeticion(d: DatosRepeticion): string | null {
   if (typeof d.codigo !== 'string' || !/^[0-9a-f]{64}$/.test(d.codigo)) return 'falta la versión del código';
   if (!esEnteroEntre(d.semilla, 0, 0xffffffff)) return 'semilla inválida';
   if (!esEnteroEntre(d.n, 1, 4)) return 'cantidad de corredores inválida';
+  // Solo la forma: si la semilla sale de él lo mira revisarSorteo (sorteo.ts).
+  if (d.sorteo !== undefined && problemaSorteo(d.sorteo, d.n) !== null) return 'sorteo mal formado';
   if (!esEnteroEntre(d.ticks, 0, MAX_TICKS_REPETICION)) return 'duración inválida';
   if (!Array.isArray(d.entradas) || d.entradas.length !== d.n) return 'faltan las teclas de algún corredor';
   for (const e of d.entradas) {

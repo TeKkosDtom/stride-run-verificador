@@ -10,7 +10,10 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** Semilla nueva de 5 cifras, como en el prototipo. Solo el servidor (o la práctica local) la elige. */
+/**
+ * Semilla de la pista nueva, de 5 cifras, como en el prototipo. Solo para la práctica, que la elige en el navegador: en
+ * las mesas, la semilla de la pista sale del sorteo (sorteo.ts).
+ */
 export function semillaNueva(azar: () => number = Math.random): number {
   return Math.floor(10000 + azar() * 89999);
 }

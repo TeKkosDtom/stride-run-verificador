@@ -3,6 +3,7 @@ import { MAX_TICKS_CARRERA } from '../src/constantes.js';
 import { huellaRepeticion } from '../src/huella.js';
 import { MICRO, TABLA_PREMIOS, repartir } from '../src/premios.js';
 import { ReproductorRepeticion, problemaRepeticion, type DatosRepeticion } from '../src/repeticion.js';
+import { nombreSorteado, problemaSorteo, revisarSorteo, type ProblemaSorteo } from '../src/sorteo.js';
 import { esPrincipal, huellaCodigo } from './codigo.js';
 
 /**
@@ -11,13 +12,17 @@ import { esPrincipal, huellaCodigo } from './codigo.js';
  * Recibe el archivo que baja "Descargar" (en el Historial) o "Descargar datos" (al final de una repetición) y
  * comprueba, sin preguntarle nada al servidor:
  *   1. que el archivo se jugó con este mismo código de la simulación (si no, hay que usar esa versión);
- *   2. que la huella sale de esas mismas teclas, y que coincide con la que anotaste al terminar la carrera;
- *   3. que volver a simular la carrera da el mismo resultado oficial: puestos, distancias, premios y comisión,
+ *   2. que la huella sale de esas mismas teclas y del sorteo de la pista, y que coincide con la que anotaste al
+ *      terminar la carrera;
+ *   3. el sorteo de la pista (src/sorteo.ts): que cada número coincida con su sobre, que la semilla de la pista salga
+ *      del sorteo y que quien no abrió su sobre haya quedado fuera antes de largar. No puede comprobar en qué orden
+ *      llegaron los números: eso lo comprobó en vivo el navegador de cada jugador;
+ *   4. que volver a simular la carrera da el mismo resultado oficial: puestos, distancias, premios y comisión,
  *      con la apuesta de esa mesa.
  *
  * Uso:  npm run verificar -- archivo.json [huella que anotaste]
- * Sale con 0 si todo coincide, 1 si algo no coincide, 2 si el archivo está dañado y 3 si la carrera
- * se jugó con otra versión del código (entonces hay que usar esa versión del verificador).
+ * Sale con 0 si todo coincide, 1 si algo no coincide (también si falta el sorteo de la pista), 2 si el archivo está
+ * dañado y 3 si la carrera se jugó con otra versión del código (entonces hay que usar esa versión del verificador).
  */
 
 export type Salida = 0 | 1 | 2 | 3;
@@ -60,6 +65,21 @@ const dinero = (micro: number) => {
 /** Las primeras 20 letras de la huella, de a 4, como las muestra el juego al terminar la carrera. */
 export const huellaParaMostrar = (h: string) => h.slice(0, 20).replace(/(.{4})(?=.)/g, '$1 ');
 const corta = (hex: string) => hex.slice(0, 12);
+/** Por qué está mal la forma del sorteo de la pista (problemaSorteo da el código). */
+const SORTEO_MAL_FORMADO: Record<ProblemaSorteo, string> = {
+  forma: 'no tiene la forma de un sorteo',
+  asientos: 'no tiene un sobre y un número por asiento',
+  plataforma: 'el número de la plataforma tiene que tener 64 letras hexadecimales en minúsculas',
+  compromiso: 'cada sobre tiene que tener 64 letras hexadecimales en minúsculas, o estar vacío',
+  aporte: 'cada número tiene que tener 32 letras hexadecimales en minúsculas, o estar vacío',
+};
+/** Los asientos (desde 0) que tenían sobre y no lo abrieron, en una frase: «El asiento 2 no abrió…» o «Los asientos 2 y 3…». */
+function noAbrieron(asientos: number[]): string {
+  if (!asientos.length) return '';
+  const nros = asientos.map((i) => String(i + 1));
+  if (nros.length === 1) return ` El asiento ${nros[0]} no abrió su sobre y quedó fuera antes de largar.`;
+  return ` Los asientos ${nros.slice(0, -1).join(', ')} y ${nros[nros.length - 1]} no abrieron su sobre y quedaron fuera antes de largar.`;
+}
 
 /** Lo mínimo para leer la versión del código. Es igual en todas las versiones. */
 function problemaBasico(a: unknown): string | null {
@@ -76,9 +96,13 @@ function problemaArchivo(a: Record<string, unknown>): string | null {
   if (p.fecha !== undefined && typeof p.fecha !== 'string') return 'la fecha de la partida está mal';
   if (p.plazas !== undefined && !esEntero(p.plazas, 1)) return 'la cantidad de jugadores de la partida está mal';
   if (!esHex64(a.huella)) return 'falta la huella';
-  const problema = problemaRepeticion(a.datos as unknown as DatosRepeticion);
+  const datos = a.datos as unknown as DatosRepeticion;
+  // El sorteo, con su motivo (problemaRepeticion solo dice «sorteo mal formado»). Si n está mal, lo dice problemaRepeticion.
+  const sorteo = datos.sorteo !== undefined && esEntero(datos.n, 1) ? problemaSorteo(datos.sorteo, datos.n) : null;
+  if (sorteo) return 'el sorteo de la pista está mal (' + SORTEO_MAL_FORMADO[sorteo] + ')';
+  const problema = problemaRepeticion(datos);
   if (problema) return 'las teclas guardadas están mal (' + problema + ')';
-  const n = (a.datos as unknown as DatosRepeticion).n;
+  const n = datos.n;
   if (!TABLA_PREMIOS[n]) return 'una partida paga necesita de 2 a 4 jugadores';
   if (!Number.isSafeInteger((p.mesa as number) * MICRO * n)) return 'el monto de la mesa es demasiado grande';
   if (!Array.isArray(a.corredores) || a.corredores.length !== n) return 'la lista de corredores no coincide con las teclas';
@@ -121,7 +145,9 @@ export function verificarArchivo(contenido: unknown, codigoLocal: string = huell
     lineas.push('✗ ' + texto);
   };
 
-  lineas.push(`Partida ${limpio(a.partida.id)}${a.partida.fecha ? ' · ' + limpio(a.partida.fecha) : ''} · Pista #${d.semilla} · ${d.n} jugadores · mesa de ${a.partida.mesa}`);
+  // El nombre de la pista, como en el juego: 8 letras si salió de un sorteo.
+  const pista = d.sorteo ? nombreSorteado(d.semilla) : String(d.semilla);
+  lineas.push(`Partida ${limpio(a.partida.id)}${a.partida.fecha ? ' · ' + limpio(a.partida.fecha) : ''} · Pista #${pista} · ${d.n} jugadores · mesa de ${a.partida.mesa}`);
   lineas.push('');
   lineas.push(`✓ Código de la simulación: es la misma versión con la que se jugó (${corta(codigoLocal)}).`);
 
@@ -135,7 +161,22 @@ export function verificarArchivo(contenido: unknown, codigoLocal: string = huell
   else if (huella.startsWith(tuya)) lineas.push('✓ Huella: coincide con la que anotaste al terminar la carrera.');
   else mal(`Huella: no coincide con la que anotaste (${huellaParaMostrar(tuya)}…). Esta no es la carrera que viste terminar.`);
 
-  // 3. Volver a simular y repartir el pozo con las reglas públicas y la apuesta de la mesa.
+  // 3. El sorteo de la pista (src/sorteo.ts). La huella ya lo ata entero: S va en su primer paso.
+  if (!d.sorteo) mal('Sorteo: falta. Esta versión del juego sortea todas las pistas de las mesas.');
+  else {
+    const r = revisarSorteo(d.sorteo, d.semilla, d.bajas);
+    const asiento = (r.asiento ?? 0) + 1;
+    if (r.motivo === 'sobre') mal(`Sorteo: el número del asiento ${asiento} no coincide con su sobre.`);
+    else if (r.motivo === 'semilla') mal('Sorteo: la semilla de la pista no sale del sorteo.');
+    else if (r.motivo === 'sin_baja') mal(`Sorteo: el asiento ${asiento} no abrió su sobre y siguió corriendo.`);
+    else if (r.conNumero > 0) {
+      lineas.push(`✓ Sorteo: la pista sale del número de la plataforma y de los números de ${r.conNumero} de ${d.n} jugadores, y cada número coincide con su sobre.${noAbrieron(r.sinAbrir)}`);
+    } else {
+      lineas.push(`! Sorteo: ningún jugador puso su número; la pista salió solo del número de la plataforma, que pudo elegirla.${noAbrieron(r.sinAbrir)}`);
+    }
+  }
+
+  // 4. Volver a simular y repartir el pozo con las reglas públicas y la apuesta de la mesa.
   const carrera = new ReproductorRepeticion(d).hastaElFinal();
   const apuesta = a.partida.mesa * MICRO;
   lineas.push('');
@@ -166,6 +207,10 @@ export function verificarArchivo(contenido: unknown, codigoLocal: string = huell
   } else mal(`Pozo y comisión: dan ${dinero(reparto.pozo)} y ${dinero(reparto.comision)}, pero el resultado oficial dice ${dinero(a.partida.pozo)} y ${dinero(a.partida.comision)}.`);
   lineas.push('');
   lineas.push('Los nombres y quién se sentó en cada asiento los informa el servidor: no forman parte de la huella.');
+  // Sin ningún sobre (como con el paso 2e, 1 de 2) no hubo orden que comprobar.
+  if (d.sorteo && d.sorteo.compromisos.some((c) => c !== '')) {
+    lineas.push('El orden (los sobres cerrados antes de abrirse) lo comprobó en vivo el navegador de cada jugador: este archivo no lo puede probar.');
+  }
   return { salida: todoBien ? 0 : 1, lineas };
 }
 

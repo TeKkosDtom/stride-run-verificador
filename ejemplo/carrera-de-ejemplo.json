@@ -1,10 +1,10 @@
 {
  "formato": "stride-run/repeticion v1",
  "explicacion": {
-  "datos": "v: versión de este formato. codigo: versión (SHA-256) del código de la simulación con el que se jugó. semilla: genera la pista (mulberry32). n: corredores, en orden de asiento. ticks: pasos de 1/60 s simulados.",
+  "datos": "v: versión de este formato. codigo: versión (SHA-256) del código de la simulación con el que se jugó. semilla: genera la pista (mulberry32). n: corredores, en orden de asiento. ticks: pasos de 1/60 s simulados. sorteo: de dónde salió la pista (falta en las carreras de antes del sorteo). plataforma: número de la plataforma (64 letras). compromisos: el sobre cerrado de cada asiento, sha256(\"stride-run/sorteo/v1/compromiso|\" + su número), o vacío si no puso número. aportes: el número de cada asiento (32 letras), o vacío si no puso número; si tenía sobre y no lo abrió a tiempo, también vacío, y quedó fuera antes de largar. Si hay sorteo, la semilla sale de él: son las primeras 8 letras de S = sha256(\"stride-run/sorteo/v1/pista|\" + plataforma + \"|\" + sobre y número de cada asiento, en orden y separados por |), leídas en hexadecimal, y son también el nombre de la pista.",
   "entradas": "Por corredor, pares [tick, teclas]: desde ese tick se aplican esas teclas hasta el próximo par. Teclas en bits: 1 izquierda, 2 derecha, 4 turbo, 8 freno, 16 saltar, 32 deslizar.",
   "bajas": "Pares [tick, corredor]: eliminado por desconexión justo antes de simular ese tick.",
-  "huella": "SHA-256 encadenado. h = sha256(\"stride-run/repeticion/v1|<partida.id>|<partida.mesa>|<semilla>|<n>|<codigo>\") (texto UTF-8). Para cada tick t de 0 a ticks: h = sha256(h + t en 4 bytes big-endian + bytes), donde h son los 32 bytes del hash anterior (no su texto hexadecimal) y bytes son las bajas de ese tick (0x80 + corredor, en orden) seguidas de un byte por corredor con las teclas vigentes en ese tick, aunque no hayan cambiado y aunque ya esté eliminado (solo si t < ticks). La huella es h en hexadecimal. El juego muestra las primeras 20 letras al terminar la carrera.",
+  "huella": "SHA-256 encadenado. h = sha256(\"stride-run/repeticion/v1|<partida.id>|<partida.mesa>|<semilla>|<n>|<codigo>|<S>\") (texto UTF-8). S es el SHA-256 del sorteo (arriba), solo si la carrera tuvo sorteo. Para cada tick t de 0 a ticks: h = sha256(h + t en 4 bytes big-endian + bytes), donde h son los 32 bytes del hash anterior (no su texto hexadecimal) y bytes son las bajas de ese tick (0x80 + corredor, en orden) seguidas de un byte por corredor con las teclas vigentes en ese tick, aunque no hayan cambiado y aunque ya esté eliminado (solo si t < ticks). La huella es h en hexadecimal. El juego muestra las primeras 20 letras al terminar la carrera.",
   "partida": "id: identificador de la partida. mesa: apuesta de cada jugador, en unidades enteras de la moneda de la mesa (1 = 1 USDT de prueba). plazas: cantidad de jugadores. pozo y comision: en millonésimas. estado: pagada, en_revision (pozo congelado, nadie cobró) o devuelta (se devolvieron las apuestas; premio es lo que habría cobrado). resolucion: cómo resolvió el administrador un pozo congelado: como_termino (se pagó como terminó), devueltas (se devolvieron las apuestas) o sin_marcados (los jugadores marcados por la revisión anti-trampas perdieron su apuesta y el pozo se repartió entre los demás, como si ellos hubieran quedado últimos). null si se pagó al terminar la carrera o si todavía está en revisión.",
   "corredores": "Resultado oficial que calculó el servidor, en orden de asiento (el mismo orden que las teclas). distanciaDm: distancia en decímetros. Montos en millonésimas: 1000000 = 1. Los nombres los informa el servidor y no forman parte de la huella. pagado: lo que cobró de verdad cada uno. Es igual a premio, salvo con devuelta (es la apuesta) y con sin_marcados (es el reparto sin los marcados). null mientras está en revisión y en las partidas viejas. premio es siempre el resultado de la carrera: es lo que comprueba el verificador.",
   "verificacion": "Lo que comprobó el juego al descargar el archivo. Para una revisión independiente, usa el verificador público.",
@@ -13,7 +13,7 @@
    "Escribe estos comandos de a uno en una terminal (en Windows, PowerShell o cmd):",
    "git clone https://github.com/TeKkosDtom/stride-run-verificador",
    "cd stride-run-verificador",
-   "git checkout codigo-a50270374aad",
+   "git checkout codigo-84a908637933",
    "npm ci",
    "npm run verificar -- \"<ruta completa de este archivo>\" <huella que anotaste al terminar la carrera>",
    "Para la ruta del archivo, también puedes arrastrarlo a la terminal."
@@ -32,39 +32,39 @@
  "corredores": [
   {
    "nombre": "Ana",
-   "posicion": 2,
-   "empatado": false,
-   "distanciaDm": 838,
-   "apuesta": 1000000,
-   "premio": 1200000,
-   "pagado": 1200000,
-   "desconectado": false
-  },
-  {
-   "nombre": "Beto",
-   "posicion": 1,
-   "empatado": false,
-   "distanciaDm": 807,
-   "apuesta": 1000000,
-   "premio": 2000000,
-   "pagado": 2000000,
-   "desconectado": false
-  },
-  {
-   "nombre": "Caro",
    "posicion": 3,
    "empatado": false,
-   "distanciaDm": 599,
+   "distanciaDm": 600,
    "apuesta": 1000000,
    "premio": 400000,
    "pagado": 400000,
    "desconectado": false
   },
   {
+   "nombre": "Beto",
+   "posicion": 2,
+   "empatado": false,
+   "distanciaDm": 839,
+   "apuesta": 1000000,
+   "premio": 1200000,
+   "pagado": 1200000,
+   "desconectado": false
+  },
+  {
+   "nombre": "Caro",
+   "posicion": 1,
+   "empatado": false,
+   "distanciaDm": 787,
+   "apuesta": 1000000,
+   "premio": 2000000,
+   "pagado": 2000000,
+   "desconectado": false
+  },
+  {
    "nombre": "Dani",
    "posicion": 4,
    "empatado": false,
-   "distanciaDm": 598,
+   "distanciaDm": 599,
    "apuesta": 1000000,
    "premio": 0,
    "pagado": 0,
@@ -73,67 +73,80 @@
  ],
  "datos": {
   "v": 1,
-  "codigo": "a50270374aad22e10fa72afe7ef1c495a5020b62fea86b835c82bfef5f821d37",
-  "semilla": 20261007,
+  "codigo": "84a908637933ec29ba792f070f17418d7589d4dfa714388a80bd12c08563f5d1",
+  "semilla": 1431828833,
+  "sorteo": {
+   "plataforma": "f84278bf6a2a573fa41df47431f8a5dc016bbc3983c30556294347be70eb5242",
+   "compromisos": [
+    "1bafbc135c3982dd7909fbbb284136918c98bc1a179537cc5f5bcca90dd04fe6",
+    "0ad393c1b55fbdf20cc46c3bdb0d479d86da3a949eed10296c9dbe50feafc426",
+    "66450c938f3bd963905d2f401597a05f5a348fb4cb1d90a407bcffe1bc3084d3",
+    "256fb1ba3182b0dbc606eeb92a0e81a52333615a880fa8671dbecaf24aa3c52a"
+   ],
+   "aportes": [
+    "77f815dceaa820dcd959d2eff1de95dd",
+    "eca0afb00c92643b17d0c99b1fea4343",
+    "38390f7c9628f6520775e7dd1942fd26",
+    "a90a0822e10982743bf489aa590fad03"
+   ]
+  },
   "n": 4,
-  "ticks": 465,
+  "ticks": 467,
   "entradas": [
    [
     0,
     0,
-    78,
-    4,
-    140,
+    60,
+    8,
+    144,
     0,
-    172,
+    212,
     4,
     249,
     0,
-    399,
+    319,
+    4,
+    378,
+    0
+   ],
+   [
+    0,
+    4,
+    70,
+    0,
+    154,
+    4,
+    219,
+    0,
+    400,
     4
    ],
    [
     0,
     0,
-    37,
+    221,
     4,
-    109,
+    285,
     0,
-    168,
-    4,
-    228,
-    0
-   ],
-   [
-    0,
-    8,
-    67,
-    0,
-    151,
-    4,
-    198,
-    0,
-    376,
-    4,
-    383,
-    0
+    441,
+    4
    ],
    [
     0,
     0,
-    67,
-    8,
-    127,
-    0,
-    169,
+    131,
     4,
-    251,
+    234,
+    0,
+    330,
+    4,
+    347,
     0
    ]
   ],
   "bajas": []
  },
- "huella": "d55768426c022af88fbe629aa10fd90c9c526431d302ceda84f9fa4738c8093b",
+ "huella": "5c68e945a648c663c4dae2f3e1c72e305b06b5280fdc1203df36ba361163e7b7",
  "verificacion": {
   "huellaCoincideEnElServidor": true,
   "mismoResultadoAlVolverASimular": true

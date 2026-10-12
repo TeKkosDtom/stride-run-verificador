@@ -5,4 +5,4 @@
  *
  * No lo edites a mano: lo escribe `tsx verificador/codigo.ts --escribir` (en el juego, `npm run huella-codigo`).
  */
-export const CODIGO_SIMULACION = 'a50270374aad22e10fa72afe7ef1c495a5020b62fea86b835c82bfef5f821d37';
+export const CODIGO_SIMULACION = '84a908637933ec29ba792f070f17418d7589d4dfa714388a80bd12c08563f5d1';

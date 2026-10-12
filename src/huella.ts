@@ -1,10 +1,13 @@
 import { createHash } from 'node:crypto';
 import { eslabonesRepeticion, type DatosRepeticion } from './repeticion.js';
+import { resultadoSorteo } from './sorteo.js';
 
 /**
  * Huella de una repetición: una cadena de hashes, un eslabón por tick (docs/DISENO.md, sección 6).
- * La cabeza nombra la partida, la pista y la versión del código de la simulación; cada eslabón es el SHA-256
- * del anterior más el número de tick y las teclas de ese tick (y las bajas por desconexión).
+ * La cabeza nombra la partida, la pista y la versión del código de la simulación y, si la pista salió de un sorteo (las
+ * mesas, desde el paso 2e), termina con S, el SHA-256 de todo el sorteo: cambiar después un sobre o un número del
+ * archivo cambia la huella. Sin sorteo (la práctica y las carreras de antes) la cabeza queda igual que siempre.
+ * Cada eslabón es el SHA-256 del anterior más el número de tick y las teclas de ese tick (y las bajas por desconexión).
  * Los jugadores la ven al terminar la carrera: si después alguien cambiara una sola tecla de la
  * repetición guardada, la huella ya no coincidiría.
  * El servidor la arma tick a tick durante la carrera (unos microsegundos por tick), así no se frena al final.
@@ -15,8 +18,9 @@ export class CadenaHuella {
   private h: Buffer;
   private readonly cabeza = Buffer.alloc(4);
 
-  constructor(sala: string, mesa: number, d: Pick<DatosRepeticion, 'v' | 'semilla' | 'n' | 'codigo'>) {
-    this.h = createHash('sha256').update(`stride-run/repeticion/v${d.v}|${sala}|${mesa}|${d.semilla}|${d.n}|${d.codigo}`).digest();
+  constructor(sala: string, mesa: number, d: Pick<DatosRepeticion, 'v' | 'semilla' | 'n' | 'codigo' | 'sorteo'>) {
+    const sorteo = d.sorteo ? '|' + resultadoSorteo(d.sorteo) : '';
+    this.h = createHash('sha256').update(`stride-run/repeticion/v${d.v}|${sala}|${mesa}|${d.semilla}|${d.n}|${d.codigo}${sorteo}`).digest();
   }
 
   eslabon(t: number, bytes: readonly number[]): void {
