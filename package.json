@@ -10,7 +10,7 @@
     "version-codigo": "tsx verificador/codigo.ts"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
     "tsx": "4.23.15"

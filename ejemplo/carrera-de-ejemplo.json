@@ -9,7 +9,7 @@
   "corredores": "Resultado oficial que calculó el servidor, en orden de asiento (el mismo orden que las teclas). distanciaDm: distancia en decímetros. Montos en millonésimas: 1000000 = 1. Los nombres los informa el servidor y no forman parte de la huella. pagado: lo que cobró de verdad cada uno. Es igual a premio, salvo con devuelta (es la apuesta) y con sin_marcados (es el reparto sin los marcados). null mientras está en revisión y en las partidas viejas. premio es siempre el resultado de la carrera: es lo que comprueba el verificador.",
   "verificacion": "Lo que comprobó el juego al descargar el archivo. Para una revisión independiente, usa el verificador público.",
   "comoVerificar": [
-   "El código de la simulación y un verificador están publicados en https://github.com/TeKkosDtom/stride-run-verificador. Hacen falta Node.js (20 o más nuevo) y git.",
+   "El código de la simulación y un verificador están publicados en https://github.com/TeKkosDtom/stride-run-verificador. Hacen falta Node.js (22 o más nuevo) y git.",
    "Escribe estos comandos de a uno en una terminal (en Windows, PowerShell o cmd):",
    "git clone https://github.com/TeKkosDtom/stride-run-verificador",
    "cd stride-run-verificador",

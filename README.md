@@ -10,7 +10,7 @@ Acá está solo lo necesario para eso: el sorteo de la pista, la pista, la físi
 
 1. **Al terminar la carrera, anota la huella** que muestra el juego (por ejemplo `Huella: 3f9a 2c1b 0e7d 81a2 99c4`) o haz una captura de pantalla. Es lo único que no depende de lo que el servidor guarde después.
 2. En el juego, abre **Historial → Partidas** y toca **Descargar** en esa partida (o **Descargar datos** al terminar de ver la repetición). Se baja un archivo `stride-run-repeticion-pista-….json`.
-3. Instala [Node.js](https://nodejs.org) 20 o más nuevo y [git](https://git-scm.com).
+3. Instala [Node.js](https://nodejs.org) 22 o más nuevo y [git](https://git-scm.com).
 4. En una terminal, escribe estos comandos de a uno (en Windows sirven PowerShell o cmd):
 
    ```
